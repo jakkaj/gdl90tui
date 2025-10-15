@@ -7,11 +7,14 @@ requires-python = ">=3.9"
 dependencies = [
     "ifaddr==0.2.0",
     "rich>=13.0.0",
+    "textual>=0.47.0",
+    "matplotlib>=3.5.0",  # Optional for true magma colormap
 ]
 
 [project.scripts]
 skyecho = "skyechogdl:main"
 skyecho-monitor = "skyecho_rich_monitor:main"
+skyecho-textual = "skyecho_textual:main"
 
 [tool.uv]
 dev-dependencies = [

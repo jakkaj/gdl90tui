@@ -1,0 +1,421 @@
+================================================================================
+              SKYECHO GDL90 MONITOR - TEXTUAL UI SPECIFICATION
+================================================================================
+
+FULL VIEW MODE (default - Traffic table only)
+================================================================================
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ TRAFFIC                                                                      │
+├──────────────────────────────────────────────────────────────────────────────┤
+│ ICAO   Callsign    Trk  Range    Brng      Alt      GS      Age             │
+│ ──────────────────────────────────────────────────────────────────────────── │
+│ A1B2C3 N12345      ↗   2.5nm     045°   5,000ft =   150kt   5s  (bright yellow)│
+│ D4E5F6 UAL123      →   4.8nm     120°   6,500ft+1500 180kt  12s (orange)    │
+│ G7H8I9 SWA456      ←   8.2nm     270°   3,500ft-1500 220kt  23s (red-orange)│
+│ J0K1L2 AAL789      ↓  12.5nm     180°   7,000ft+2000 165kt  35s (deep red)  │
+│ M3N4O5 DAL321      ↖  18.3nm     315°   4,500ft-500  190kt  48s (purple)    │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+│ Device: SkyEcho 2 │ Ver: 2.1.5 │ SN: SE-12345 │ Pos: 37.7749, -122.4194 │ Alt: 5,000ft │ GS: 120kt │ Traffic: 5 │ [S]plit [+/-]Zoom [Q]uit
+└──────────────────────────────────────────────────────────────────────────────┘
+
+
+SPLIT VIEW MODE (press 's' to toggle - Traffic table + Radar display)
+================================================================================
+┌─────────────────────────────────────┬────────────────────────────────────────┐
+│ TRAFFIC                             │ RADAR                                  │
+├─────────────────────────────────────┼────────────────────────────────────────┤
+│ ICAO   Callsign  Trk Range Brng Alt │      Range: 10 nm    Track: 045°       │
+│ ─────────────────────────────────── │                                        │
+│ A1B2C3 N12345    ↗  2.5nm 045° 5,000│                   ·                    │
+│ D4E5F6 UAL123    →  4.8nm 120° 6,500│               ·       ·                │
+│ G7H8I9 SWA456    ←  8.2nm 270° 3,500│           ·               ·            │
+│ J0K1L2 AAL789    ↓ 12.5nm 180° 7,000│       ·                       ·        │
+│ M3N4O5 DAL321    ↖ 18.3nm 315° 4,500│   ·        ╔═══════════╗           ·   │
+│                                     │            ║  ↗N12345  ║               │
+│   GS      Age                       │        ← · ║  +0    2.5║               │
+│   ────────────                      │       SWA  ║           ║  · ↘          │
+│   150kt   5s    (bright yellow)     │      -1500 ║     ⊕     ║   AAL +2000   │
+│   180kt   12s   (orange)            │       8.2  ║     ↗     ║   12.5        │
+│   220kt   23s   (red-orange)        │            ║           ║               │
+│   165kt   35s   (deep red)          │            ║  →UAL123  ║    · ↖        │
+│   190kt   48s   (purple)            │            ║ +1500  4.8║     DAL -500  │
+│                                     │   ·        ╚═══════════╝      18.3  ·  │
+│                                     │       ·                       ·        │
+│                                     │           ·               ·            │
+│                                     │               ·       ·                │
+│                                     │                   ·                    │
+│                                     │                                        │
+│                                     │   ⊕ = Ownship (center, with track ↗)   │
+│                                     │   · = Range rings (5nm, 10nm)          │
+│                                     │   →UAL = Target with track arrow       │
+│                                     │   +1500 = Relative altitude            │
+│                                     │   4.8 = Distance in nm                 │
+│                                     │                                        │
+│                                     │   Traffic in range: 5                  │
+│                                     │   Closest: N12345 (2.5nm NE)           │
+└─────────────────────────────────────┴────────────────────────────────────────┘
+│ Device: SkyEcho 2 │ Ver: 2.1.5 │ SN: SE-12345 │ Pos: 37.7749, -122.4194 │ Alt: 5,000ft │ GS: 120kt │ Traffic: 5 │ [S]plit [+/-]Zoom [Q]uit │ ⚡ SPLIT VIEW
+└──────────────────────────────────────────────────────────────────────────────┘
+
+
+LOADING SCREEN (shown until first GDL90 packet received)
+================================================================================
+
+                    ┌──────────────────────────────────────┐
+                    │                                      │
+                    │     SkyEcho GDL90 Monitor            │
+                    │                                      │
+                    │     Waiting for GDL90 data...        │
+                    │                                      │
+                    │     Make sure your device is:        │
+                    │     • Connected to SkyEcho WiFi      │
+                    │     • Broadcasting on port 4000      │
+                    │                                      │
+                    │     Press 'q' to quit                │
+                    │                                      │
+                    └──────────────────────────────────────┘
+
+
+================================================================================
+                              DESIGN SPECIFICATIONS
+================================================================================
+
+LAYOUT HIERARCHY:
+─────────────────
+┌────────────────────────────────────────────────────────┐
+│ Main Container (Horizontal)                            │ ← 100% height
+│ ├─ Traffic Panel (Vertical, 50% width in split mode)   │
+│ │  ├─ Title: "TRAFFIC" (magenta, bold, centered)       │
+│ │  └─ ScrollableContainer(TrafficTable)                │
+│ └─ Radar Panel (Vertical, 50% width, only in split)    │
+│    └─ RadarView widget                                 │
+├────────────────────────────────────────────────────────┤
+│ Status Bar (docked bottom, 1 row, grey11 background)   │ ← Fixed 1 row
+└────────────────────────────────────────────────────────┘
+
+
+STATUS BAR CONTENT (from left to right):
+────────────────────────────────────────
+Device: SkyEcho 2 │ Ver: 2.1.5 │ SN: SE-12345 │ Pos: 37.7749, -122.4194 │
+Alt: 5,000ft │ GS: 120kt │ Traffic: 5 │ [S]plit [+/-]Zoom [Q]uit
+
+Optional feedback indicators (shown for 2 seconds):
+│ ⚡ SPLIT VIEW    (after pressing 's')
+│ 📡 RANGE: 10 nm  (after pressing +/-)
+
+Color coding:
+- "Device:", "Ver:", "SN:", etc. = bold white
+- Device model = cyan
+- Version = green
+- Serial number = yellow
+- Position/Alt/GS values = white
+- Traffic count = magenta
+- Keyboard hints: [S] [+/-] [Q] = cyan, rest = dim
+- Feedback indicators = bold yellow (split) or bold green (range)
+
+
+TRAFFIC TABLE COLUMNS:
+──────────────────────
+Column      Width    Justify   Style           No Wrap   Notes
+─────────── ──────── ────────  ─────────────── ───────   ─────────────────────
+ICAO        auto     left      cyan            yes       6 chars (hex address)
+Callsign    auto     left      default         yes       Max 10 chars
+Trk         auto     center    cyan            yes       Arrow: ↑↗→↘↓↙←↖
+Range       auto     right     default         yes       Format: X.Xnm
+Brng        auto     right     default         yes       Format: XXX°
+Alt         auto     right     default         yes       Format: X,XXXft ±XXXX
+GS          auto     right     default         yes       Format: XXXkt
+Age         auto     right     magma gradient  yes       Format: XXXs + color
+
+Table properties:
+- Header style: bold magenta
+- No table edges (show_edge=False)
+- Padding: (0, 1) - no vertical, 1 horizontal
+- Expand: True (fills panel width)
+- Collapse padding: True
+
+Empty state (no traffic):
+- Show 3 rows of "—" characters
+- Style: dim
+
+
+MAGMA COLOR GRADIENT (age-based):
+──────────────────────────────────
+Age fraction = age_seconds / ttl (0.0 to 1.0)
+
+0.00 (new)   → #FCFFA4  Bright yellow (hot)
+0.20         → #FCA50A  Orange
+0.40         → #E8533A  Red-orange
+0.60         → #BC3754  Deep red
+0.80         → #7C2F7F  Purple
+1.00 (old)   → #3B0F70  Dark purple (cold)
+
+Applied to: Age column text only
+
+
+TRACK ARROW CALCULATION:
+────────────────────────
+Track heading → Arrow character (8 directions)
+
+  337.5° - 22.5°   →  ↑   North
+   22.5° - 67.5°   →  ↗   Northeast
+   67.5° - 112.5°  →  →   East
+  112.5° - 157.5°  →  ↘   Southeast
+  157.5° - 202.5°  →  ↓   South
+  202.5° - 247.5°  →  ↙   Southwest
+  247.5° - 292.5°  →  ←   West
+  292.5° - 337.5°  →  ↖   Northwest
+
+Python implementation:
+```python
+def get_direction_arrow(track: float) -> str:
+    track = track % 360  # Normalize to 0-360
+    if 337.5 <= track or track < 22.5:
+        return "↑"   # N
+    elif 22.5 <= track < 67.5:
+        return "↗"   # NE
+    elif 67.5 <= track < 112.5:
+        return "→"   # E
+    elif 112.5 <= track < 157.5:
+        return "↘"   # SE
+    elif 157.5 <= track < 202.5:
+        return "↓"   # S
+    elif 202.5 <= track < 247.5:
+        return "↙"   # SW
+    elif 247.5 <= track < 292.5:
+        return "←"   # W
+    else:  # 292.5 <= track < 337.5
+        return "↖"   # NW
+```
+
+
+RADAR VIEW (right panel when split):
+─────────────────────────────────────
+Polar coordinate display centered on ownship:
+
+Components:
+1. Header: "Range: XX nm    Track: XXX°"
+2. Range rings: Two concentric circles
+   - Inner ring: 50% of max range (dotted: ·)
+   - Outer ring: 100% of max range (box chars: ╔═╗║╚╝)
+3. Ownship: ⊕ at center with track arrow (↗)
+4. Traffic targets plotted by bearing and distance:
+   - Format: →CALL
+   - Below: ±ALT  DIST
+   - Arrow shows target's track direction
+   - Abbreviated callsign (3-4 chars)
+   - Relative altitude (±feet or = for same)
+   - Distance in nm
+
+Target positioning:
+- X = center_x + (distance / max_range) × radius × sin(bearing)
+- Y = center_y - (distance / max_range) × radius × cos(bearing)
+- Bearing in radians: bearing × π / 180
+
+Legend at bottom:
+- ⊕ = Ownship (center, with track arrow)
+- · = Range rings
+- →CALL = Target with track arrow
+- ±XXXX = Relative altitude
+- X.X = Distance in nm
+
+Color coding by altitude separation:
+* Red: |separation| < 500ft (collision warning)
+* Yellow: 500 ≤ |separation| < 1000ft (caution)
+* Green: |separation| ≥ 1000ft (safe)
+* White: Unknown altitude
+
+Traffic summary:
+- "Traffic in range: X"
+- "Closest: CALLSIGN (X.Xnm DIR)"
+
+
+KEYBOARD SHORTCUTS:
+───────────────────
+Key       Action                  Visual Feedback
+────────  ─────────────────────── ──────────────────────────────────
+q / Q     Quit application        (exits cleanly)
+s / S     Toggle split view       "⚡ SPLIT VIEW" or "⚡ FULL VIEW" (2s)
++ / =     Zoom in (decrease)      "📡 RANGE: X nm" (2s)
+- / _     Zoom out (increase)     "📡 RANGE: X nm" (2s)
+
+Zoom steps (discrete): [1, 2, 5, 10, 20, 50, 100, 200] nm
+Default range: 10 nm
+
+
+RELATIVE ALTITUDE DISPLAY:
+──────────────────────────
+Format in traffic table:
+- Same altitude: "5,000ft ="
+- Above ownship: "6,500ft +1500"
+- Below ownship: "3,500ft -1500"
+
+Calculation: target_altitude - ownship_altitude
+
+Color coding (future):
+- Red: |difference| < 500ft (collision risk)
+- Yellow: 500 ≤ |difference| < 1000ft (caution)
+- Green: |difference| ≥ 1000ft (safe)
+
+
+TRAFFIC SORTING:
+────────────────
+Primary sort: Distance (ascending) - closest aircraft first
+Display limit: 20 rows maximum
+Pruning: Remove contacts older than TTL (default 60 seconds)
+
+
+DATA UPDATE CYCLE:
+──────────────────
+Refresh interval: 0.5 seconds (2 Hz)
+
+On each refresh:
+1. Prune stale contacts (age > TTL)
+2. Recalculate relative altitudes (if ownship altitude available)
+3. Refresh TrafficTable widget
+4. Refresh RadarView widget (if visible)
+5. Update StatusBar (traffic count, feedback flags)
+
+
+VISUAL FEEDBACK TIMERS:
+───────────────────────
+Split toggle feedback: 2 seconds
+Range change feedback: 2 seconds
+
+Implementation: Timer set on action, clears flag after timeout
+
+
+COLOR SCHEME:
+─────────────
+Traffic panel border: magenta (primary)
+Radar panel border: yellow (warning)
+Status bar background: grey11
+Panel titles: bold cyan/magenta/yellow
+Traffic table headers: bold magenta
+ICAO addresses: cyan
+Ownship data: green
+Traffic data: white/default
+Age gradient: magma colors (#FCFFA4 → #3B0F70)
+Empty states: dim
+Keyboard hints: cyan + dim
+Feedback indicators: bold yellow/green
+
+
+RESPONSIVE BEHAVIOR:
+────────────────────
+- Panels resize proportionally with terminal
+- Minimum panel width: 40 characters each
+- Traffic table scrolls vertically if needed
+- Status bar wraps if terminal too narrow (Textual auto-handles)
+- Split view maintains 50/50 ratio
+- Layout rebuilds on split toggle
+
+
+THREADING MODEL:
+────────────────
+Main thread: Textual app event loop
+Background thread: UDP receiver (daemon)
+Communication: call_from_thread() for thread-safe updates
+
+Receiver thread:
+1. Binds to UDP port 4000
+2. Receives GDL90 packets
+3. Processes with decoder
+4. Calls data_received() on first packet
+5. Updates demo data (until decoder properly integrated)
+
+
+DEMO DATA (for testing without SkyEcho):
+─────────────────────────────────────────
+Ownship:
+- Lat: 37.7749 (San Francisco)
+- Lon: -122.4194
+- Altitude: 5,000 ft
+- Track: 45°
+- Ground speed: 120 kt
+- GPS status: "3D Fix"
+
+Traffic (5 demo targets):
+- TEST1-TEST5 callsigns
+- Addresses: A00000-A00004
+- Distances: 2.5, 4.5, 6.5, 8.5, 10.5 nm
+- Altitudes: 5,000, 5,500, 6,000, 6,500, 7,000 ft
+- Bearings: 0°, 72°, 144°, 216°, 288° (evenly distributed)
+
+
+INTEGRATION NOTES:
+──────────────────
+Current state: Demo data mode
+- Decoder processes packets but doesn't return structured data
+- App shows demo ownship and traffic when packets received
+- Loading screen dismisses on first packet
+
+Next steps for full integration:
+1. Modify gdl90 decoder to return message objects
+2. Parse message types (0=Heartbeat, 10=Ownship, 20=Traffic)
+3. Update ownship data from MSG10
+4. Create/update traffic contacts from MSG20
+5. Calculate real distance/bearing using haversine formula
+6. Remove demo data once real data flowing
+
+Future enhancements:
+1. Full radar visualization with polar plot
+2. Altitude separation color coding
+3. Track heading arrows on radar
+4. Zoom to specific target
+5. Click target for details
+6. Sound alerts for proximity warnings
+7. Export traffic data to CSV
+8. Replay mode from saved GDL90 data
+
+
+================================================================================
+                            COMPARISON TO ORIGINAL
+================================================================================
+
+ORIGINAL RICH MONITOR:
+- Header panel (10 rows): Ownship detailed info
+- Body panel: Traffic table OR split (traffic + radar placeholder)
+- Footer (3 rows): Device info + keyboard hints + feedback
+- Split toggle recreates entire Layout object
+- Manual terminal size reading with fallbacks
+
+NEW TEXTUAL MONITOR:
+- Bottom status bar (1 row): Ownship + device + traffic count + hints
+- Main area: Traffic table OR split (traffic + radar)
+- More compact status bar (1 row vs 3+10 rows)
+- Textual handles layout automatically
+- No manual size calculations needed
+
+IMPROVEMENTS:
+✅ More screen space for traffic and radar
+✅ All critical info in status bar (ownship data visible at all times)
+✅ Better resize handling (Textual framework)
+✅ Cleaner split toggle (no manual Layout recreation)
+✅ Consistent color scheme
+✅ Same keyboard shortcuts
+✅ Same magma gradient
+✅ Same zoom steps
+
+PRESERVED FROM ORIGINAL:
+✅ Traffic sorting by distance
+✅ Magma color gradient on age
+✅ Split view toggle (s key)
+✅ Range zoom (+/- keys)
+✅ Discrete zoom steps [1,2,5,10,20,50,100,200]
+✅ 2-second visual feedback
+✅ Relative altitude display
+✅ 60-second TTL
+✅ Bottom status bar with device info
+✅ Keyboard shortcut hints
+
+
+================================================================================
+                                   END
+================================================================================

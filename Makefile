@@ -18,8 +18,9 @@ help:
 	@echo "make install-gdl90 - Clone gdl90 library from GitHub"
 	@echo "make update-gdl90  - Update gdl90 library to latest version"
 	@echo "make run           - Run the simple GDL90 receiver (text output)"
-	@echo "make run-monitor   - Run the Rich TUI monitor (split view)"
-	@echo "make run-monitor-full - Run the Rich TUI monitor (traffic only)"
+	@echo "make run-monitor   - Run the Textual TUI monitor (default)"
+	@echo "make run-textual   - Run the Textual TUI monitor (same as run-monitor)"
+	@echo "make run-monitor-rich - Run the Rich TUI monitor (legacy)"
 	@echo "make clean         - Remove UV cache and Python artifacts"
 	@echo "make clean-all     - Remove everything including gdl90 directory"
 	@echo "make test          - Run tests (if available)"
@@ -69,12 +70,20 @@ run:
 	$(PYTHON) skyechogdl.py
 
 run-monitor:
-	@echo "Starting Rich TUI monitor (split view) with UV..."
+	@echo "Starting Textual TUI monitor with UV..."
+	$(PYTHON) skyecho_textual.py
+
+run-monitor-rich:
+	@echo "Starting Rich TUI monitor (legacy) with UV..."
 	$(PYTHON) skyecho_rich_monitor.py --split
 
-run-monitor-full:
-	@echo "Starting Rich TUI monitor (traffic only) with UV..."
+run-monitor-rich-full:
+	@echo "Starting Rich TUI monitor (traffic only, legacy) with UV..."
 	$(PYTHON) skyecho_rich_monitor.py
+
+run-textual:
+	@echo "Starting Textual TUI monitor with UV..."
+	$(PYTHON) skyecho_textual.py
 
 clean:
 	@echo "Cleaning up UV cache and Python artifacts..."
